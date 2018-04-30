@@ -109,7 +109,7 @@ if [ $? -eq 0 ]; then
          fi 
       fi
    else
-      tput cup $(($start_row + 10)) $left_col; echo "Returning to main menu - No Streaming Video" 
+      msg="Returning to main menu - No Streaming Video"; . $DisplayMsg; .$PressEnter
    fi
 else
    msg="Returning to main menu -  Check VLC is installed"; . $DisplayMsg; . $PressEnter
