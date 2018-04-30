@@ -105,7 +105,7 @@ if [ $? -eq 0 ]; then
          if [ $ansr = "y" ]; then
             StartVlc
          else
-            tput cup $(($start_row + 7)) $left_col; echo "Returning to main menu - No streaming video"
+            msg="Returning to main menu - No streaming video"; . $DisplayMsg; . $PressEnter
          fi 
       fi
    else
