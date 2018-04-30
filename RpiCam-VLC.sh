@@ -6,16 +6,16 @@
 
 CheckVLC ()
 {
-    local locretVal=0
+    local locRetVal=0
     local vlcDir="/usr/bin/vlc"
 
     if [ -f $vlcDir ]; then
-       locretVal=0  
+       locRetVal=0  
     else
-       locretVal=1 
+       locRetVal=1 
     fi
 
-    return $locretVal
+    return $locRetVal
 }
 
 # -----------------------------------
@@ -25,35 +25,38 @@ CheckVLC ()
 VLCStream ()
 {
     local ansr=0
-    local locretVal=0
-    local nochoiceMade=true
+    local locRetVal=0
+    local chceOk="n"
 
-    while [ $nochoiceMade = true ]; do
-       tput cup $(($start_row + 3)) $left_col; echo "Choose ouput stream to use below"
-       tput cup $(($start_row + 5)) $left_col; echo "1. Send output to RTSP"
-       tput cup $(($start_row + 6)) $left_col; echo "2. Send output to HTTP"
-       tput cup $(($start_row + 7)) $left_col; echo "x. Exit - Return to Main Menu" 
-       tput cup $(($start_row + 9)) $left_col; read -p "Enter your choice 1,2 or x : " ansr 
-       if [[ $ansr =~ [1|2|x|X] ]]; then
-          nochoiceMade=false
-          vlcStream=$ansr
-          if [[ $ansr =~ [xX] ]]; then
-             locretVal=1
-          fi
-       else
-          tput cup $(($start_row + 10)) $left_col; echo "Choice must be 1,2 or x"
-       fi
+    while [ $chceOk = "n" ]; do
+        tput cup $(($start_row + 3)) $left_col; echo "Choose ouput stream to use below"
+        tput cup $(($start_row + 5)) $left_col; echo "1. Send output to RTSP"
+        tput cup $(($start_row + 6)) $left_col; echo "2. Send output to HTTP"
+        tput cup $(($start_row + 7)) $left_col; echo "3. Exit - Return to Main Menu" 
+        tput cup $(($start_row + 9)) $left_col; read -p "Enter your choice 1,2 or 3 : " ansr 
+        if [[ "$ansr" =~ ^-?[0-9]+$ ]]; then
+            if [ $ansr -ge 1 ] && [ $ansr -le 3 ]; then
+                chceOk="y"
+                vlcStream=$ansr
+            elif [ $ansr -eq 3 ]; then
+                locRetVal=1
+            else
+                msg="Choice must be 1,2 or 3"; . $DisplayMsg; . $PressEnter
+            fi
+        else
+            msg="Choice must be an integer, 1,2 or 3"; . $DisplayMsg; . $PressEnter
+        fi
     done
 
     if [[ $ansr =~ [1|2] ]]; then
-       tput cup $(($start_row + 3)) $left_col; tput el 
-       tput cup $(($start_row + 5)) $left_col; tput el 
-       tput cup $(($start_row + 6)) $left_col; tput el 
-       tput cup $(($start_row + 7)) $left_col; tput el 
-       tput cup $(($start_row + 9)) $left_col; tput el 
+        tput cup $(($start_row + 3)) $left_col; tput el 
+        tput cup $(($start_row + 5)) $left_col; tput el 
+        tput cup $(($start_row + 6)) $left_col; tput el 
+        tput cup $(($start_row + 7)) $left_col; tput el 
+        tput cup $(($start_row + 9)) $left_col; tput el 
     fi
 
-    return $locretVal
+    return $locRetVal
 }
 
 # -----------------------------------
@@ -82,10 +85,9 @@ StartVlc ()
 ipAddr=$(sed -e 's/^[ \t]*//;s/[ \t]*$//' <<<"$(hostname -I)")
 vlcStream=0
 
-tput clear
-tput cup $start_row $left_col; tput rev; echo "   Raspicam Utilities  "
-tput cup $(($start_row + 1)) $left_col; echo "       VLC Video       "
-tput sgr0
+hdrLne2="        VLC Video       "
+
+. $PiCamHdr
 
 CheckVLC 
 
@@ -110,5 +112,5 @@ if [ $? -eq 0 ]; then
       tput cup $(($start_row + 10)) $left_col; echo "Returning to main menu - No Streaming Video" 
    fi
 else
-   tput cup $(($start_row + 7)) $left_col; echo "Returning to main menu -  Check VLC is installed"
+   msg="Returning to main menu -  Check VLC is installed"; . $DisplayMsg; . $PressEnter
 fi
