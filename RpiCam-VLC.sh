@@ -80,13 +80,7 @@ StartVlc ()
     tput cup $(($start_row + 6)) $left_col; read -p "Start streaming VLC Video y/n : " ansr
 
     if [ "$ansr" = "y" ]; then
-       StartVlc
-    else
-       msg="Returning to main menu - No streaming video"; . $DisplayMsg; . $PressEnter
-    fi 
-
-    if [ "$ansr" = "y" ]; then
-        if [ $vlcStream == 1 ]; then
+        if [ $vlcStream -eq 1 ]; then
             raspivid -o - -t 0 -n -w 600 -h 400 -fps 12 | cvlc -vvv stream:///dev/stdin --sout '#rtp{sdp=rtsp://:8554/}' :demux=h264 2> /dev/null &
         else
             raspivid -o - -t 0 -vf |cvlc -v stream:///dev/stdin --sout '#standard{access=http,mux=ts,dst=:8554}' :demux=h264 2> /dev/null &
@@ -96,21 +90,16 @@ StartVlc ()
     elif [ "$ansr" = "n" ]; then
         msg="No chosen, VLC not started, returning to main menu."; . $DisplayMsg; . $PressEnter
     else
-        msg="VLC not started, returning to main menu."; . $DisplayMsg; . $PressEnter
+        msg="No aswer given, assuming no to start, returning to main menu."; . $DisplayMsg; . $PressEnter
     fi
-
-    vlcPid=$!
-    msg="VLC started, PID is $vlcPid."; . $DisplayMsg; . $PressEnter
 }
 
 # -----------------------------------
-# Start here
-# rtsp://localhost:8554/
+#   Main routine - Start here
 # -----------------------------------
  
 ipAddr=$(sed -e 's/^[ \t]*//;s/[ \t]*$//' <<<"$(hostname -I)")
 vlcStream=0
-ansr=""
 
 hdrLne2="        VLC Video       "
 
@@ -121,15 +110,8 @@ CheckVLC
 if [ $? -eq 0 ]; then
    VLCStream
    if [ $? -eq 0 ]; then
-      tput cup $(($start_row + 6)) $left_col; read -p "Start streaming VLC Video y/n : " ansr
-      if [ "$ansr" = "y" ]; then
-         StartVlc
-      else
-         msg="Returning to main menu - No streaming video"; . $DisplayMsg; . $PressEnter
-      fi 
-   else
-      msg="Returning to main menu - No Streaming Video"; . $DisplayMsg; .$PressEnter
+      StartVlc
    fi
 else
-   msg="Returning to main menu -  Check VLC is installed"; . $DisplayMsg; . $PressEnter
+   msg="Check VLC is installed, returning to main menu."; . $DisplayMsg; . $PressEnter
 fi
