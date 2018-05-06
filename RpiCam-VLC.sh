@@ -38,10 +38,12 @@ VLCStream ()
         tput cup $(($start_row + 9)) $left_col; tput bold; read -p "Enter your choice 1,2 or 3 : " ansr; tput sgr0
 
         if [[ "$ansr" =~ ^-?[0-9]+$ ]]; then
-            if [ $ansr -ge 1 ] && [ $ansr -le 3 ]; then
+            if [ $ansr -ge 1 ] && [ $ansr -le 2 ]; then
                 chceOk="y"
                 vlcStream=$ansr
             elif [ $ansr -eq 3 ]; then
+                chceOk="y"
+                vlcStream=0
                 locRetVal=1
             else
                 msg="Choice must be 1,2 or 3"; . $DisplayMsg; . $PressEnter
@@ -110,7 +112,9 @@ CheckVLC
 if [ $? -eq 0 ]; then
    VLCStream
    if [ $? -eq 0 ]; then
-      StartVlc
+      if [ $vlcStream -gt 0 ]; then
+         StartVlc
+      fi
    fi
 else
    msg="Check VLC is installed, returning to main menu."; . $DisplayMsg; . $PressEnter
