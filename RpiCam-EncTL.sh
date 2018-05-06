@@ -49,7 +49,7 @@ EncodeTL ()
     local ansr="n"
     local myPid=0
 
-    tlOut="${tlDir}/${tlMp4}"
+    tlOut="${piTL}/${tlMp4}"
 
     tput cup $(($start_row + 6)) $left_col; echo "$numJpg jpg files found."
     tput cup $(($start_row + 7)) $left_col; read -p "Start encoding y/n : " ansr 
@@ -70,27 +70,21 @@ EncodeTL ()
 # Main Routine - Start here. 
 #--------------------------------------------------------
 
-rpiDir=~/Pictures
-tlDir=${rpiDir}/Timelapse
-numJpg=$(ls -l $tlDir/*.jpg 2> /dev/null | wc -l)
-tlFile=$(ls $tlDir/*0001.jpg 2> /dev/null)
+numJpg=$(ls -l $piTL/*.jpg 2> /dev/null | wc -l)
+tlFile=$(ls $piTL/*0001.jpg 2> /dev/null)
 encodeType=0
 tlDate=""
 
-tput clear
-tput cup $start_row $left_col 
-tput rev 
-echo "   Raspicam Utilities  "
-tput cup $(($start_row + 1)) $left_col 
-echo "    Encode Timelapse   "
-tput sgr0
-tput cup $(($start_row + 3)) $left_col; echo "Directory     : $tlDir"
+hdrLne2="    Encode Timelapse    "
+. $PiCamHdr
 
-if [ -d $tlDir ]; then
+tput cup $(($start_row + 3)) $left_col; echo "Directory     : $piTL"
+
+if [ -d $piTL ]; then
    if [ $numJpg -gt 0 ]; then
       if [ ! -z $tlFile ]; then 
          IFS='_' read part_01 part_02 tlDate part_04 <<< "$tlFile"
-         jpgFile=${tlDir}"/rpi_tl_"$tlDate"_%04d.jpg"
+         jpgFile=${piTL}"/rpi_tl_"$tlDate"_%04d.jpg"
          unset IFS
          EncodeType
          if [ $? -eq 0 ]; then
@@ -103,5 +97,5 @@ if [ -d $tlDir ]; then
       tput cup $(($start_row + 7)) $left_col; echo "Returning to Main Menu - No JPG files found"
    fi
 else
-   tput cup $(($start_row + 7)) $left_col; echo "Returning to Main Menu - $tlDir not found"
+   tput cup $(($start_row + 7)) $left_col; echo "Returning to Main Menu - $piTL not found"
 fi
