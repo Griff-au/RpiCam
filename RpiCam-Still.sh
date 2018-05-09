@@ -6,61 +6,36 @@
 
 TakeShot ()
 {
-    local takeShot=true
+    local tkePhoto=true
+    local ansr=""
+    local shotMsg="Ok to take shot [yn] : "
 
     tput cup $(($start_row + 3)) $left_col; tput el
     tput cup $(($start_row + 4)) $left_col; tput el
     tput cup $(($start_row + 3)) $left_col; echo "Directory : $piStills"
     tput cup $(($start_row + 4)) $left_col; echo "File Name : $stImg"
-    tput cup $(($start_row + 6)) $left_col; read -p "Ok to take shot y/n : " ansr
 
-    if [ ! -z $ansr ]; then
-        if [ $ansr = "y" ]; then 
-            while [ $takeShot = true ]; do
+    while [ $tkePhoto = true ]; do
+        tput cup $(($start_row + 6)) $left_col; read -p "$shotMsg" ansr
+        if [[ $ansr =~ [YyNn] ]]; then
+            if [[ $ansr =~ [Yy] ]]; then 
                 tput cup $(($start_row + 7)) $left_col; echo "Taking shot" 
                 raspistill -rot 180 -o $stFile 
                 tput cup $(($start_row + 7)) $left_col; echo "Shot taken " 
                 tput cup $(($start_row + 6)) $left_col; tput el
-                TakeAnother
-                if [ $? -eq 0 ]; then
-                    stImg="PiImg-$(date +'%y%m%d-%H%M%S').jpg"
-                    stFile=${piStills}/${stImg}
-                    tput cup $(($start_row + 4)) $left_col; echo "File Name : $stImg"
-                else
-                    takeShot=false
-                fi
-            done
+                stImg="PiImg-$(date +'%y%m%d-%H%M%S').jpg"
+                stFile=${piStills}/${stImg}
+                tput cup $(($start_row + 4)) $left_col; echo "File Name : $stImg"
+                shotMsg="Take another [yn] : "
+            else
+                tkePhoto=false
+                msg="Ok, returning to main menu."; . $DisplayMsg; . $PressEnter
+            fi
         else
-            msg="Choice was not Yes, returning to main menu."; . $DisplayMsg; . $PressEnter
+            msg="Must be [Yy] or [Nn]."; . $DisplayMsg; . $PressEnter
         fi
-    else
-        msg="No choice made, returning to main menu."; . $DisplayMsg; . $PressEnter
-    fi
-}
-
-# -------------------------------------------------------------------
-# 	Take another shot.
-# -------------------------------------------------------------------
- 
-TakeAnother ()
-{
-    local locRetVal=0
-    local ansr="n"
-
-    tput cup $(($start_row + 6)) $left_col; read -p "Take another y/n : " ansr
-    tput cup $(($start_row + 7)) $left_col; tput el
-
-    if [ ! -z $ansr ]; then
-        if [ $ansr != "y" ]; then
-           msg="No shot to take, returning to main menu"; . $DisplayMsg; . $PressEnter 
-           locRetVal=1
-        fi    
-    else
-        msg="No choice made, returning to main menu"; . $DisplayMsg; . $PressEnter 
-        locRetVal=1
-    fi 
-
-    return $locRetVal
+        tput cup $(($start_row + 6)) $left_col; tput el
+    done
 }
 
 # -------------------------------------------------------------------

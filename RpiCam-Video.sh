@@ -65,24 +65,23 @@ TakeVideo ()
         vdLen=$((vdTime * 1000))
     fi
 
+    tput cup $(($start_row + 4)) $left_col; echo "File Name : $vdH264" 
+
     while [ $chceOk = "n" ]; do
-        tput cup $(($start_row + 4)) $left_col; echo "File Name : $vdH264" 
-        tput cup $(($start_row + 9)) $left_col; read -p "Start video y/n : " ansr 
-        if [ ! -z $ansr ]; then
-            if [ "$ansr" = "y" ]; then
-                chceOk="yes"
+        tput cup $(($start_row + 9)) $left_col; read -p "Start video [yn] : " ansr 
+        if [[ $ansr =~ [YyNn] ]]; then
+            chceOk="yes"
+            if [[ $ansr =~ [Yy] ]]; then
                 nohup raspivid -t $vdLen -o $vdFile 2> /dev/null & 
                 myPid=$!
                 msg="Video started, PID is $myPid"; . $DisplayMsg; . $PressEnter 
-            elif [ "$ansr" = "n" ]; then
-                chceOk="yes"
-                msg="No selected, returning to main menu."; . $DisplayMsg; . $PressEnter 
-            else
-                msg="Answer must be yes or no"; . $DisplayMsg; . $PressEnter 
+            else 
+                msg="Ok, returning to main menu."; . $DisplayMsg; . $PressEnter 
             fi
         else
-            msg="Answer can't be blank, must be yes or no"; . $DisplayMsg; . $PressEnter 
+            msg="Must be [Yy] or [Nn]."; . $DisplayMsg; . $PressEnter 
         fi
+        tput cup $(($start_row + 9)) $left_col; tput el 
     done
 }
 

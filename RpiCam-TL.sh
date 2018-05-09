@@ -3,40 +3,35 @@
 # -------------------------------------------------------------
 # Check if Time Lapse directory is empty.
 # -------------------------------------------------------------
- 
+
 CheckJPG ()
 {
+    local numJpg=$1
     local locretVal=0
     local ansr="n"
     local chceOk="n"
-    local numJpg=$(ls -l $piTL/*.jpg 2> /dev/null | wc -l)
-    
+
+    tput cup $(($start_row + 6)) $left_col; echo "Currently $numJpg files in $piTL"
+
     while [ $chceOk = "n" ]; do
-        if [ $numJpg -gt 0 ]; then
-            tput cup $(($start_row + 6)) $left_col; echo "Currently $numJpg files in $piTL"
-            tput cup $(($start_row + 7)) $left_col; read -p "Do you want to delete them y/n : " ansr
-            if [ ! -z $ansr ]; then
-                if [ $ansr = "y" ]; then
-                    rm $piTL/*.jpg
-                    if [ $? -ne 0 ]; then
-                        msg="Unable to delete existing files, check priveleges, terminating."; . $DisplayMsg; . $PressEnter
-                        locretVal=1
-                    else
-                        msg="All $numJpg files deleted."; . $DisplayMsg; . $PressEnter
-                        chceOk="y"
-                    fi
-                elif [ $ansr = "n" ]; then
-                    msg="Keeping existing files."; . $DisplayMsg; . $PressEnter
-                    chceOk="y"
+        tput cup $(($start_row + 7)) $left_col; read -p "Do you want to delete them [yn] : " ansr
+        if [[ $ansr =~ [YyNn] ]]; then
+            chceOk="y"
+            if [[ $ansr =~ [Yy] ]]; then
+                rm $piTL/*.jpg
+                if [ $? -ne 0 ]; then
+                    msg="Unable to delete existing files."; . $DisplayMsg; . $PressEnter
+                    locretVal=1
                 else
-                    msg="Choice needs to be Y or N."; . $DisplayMsg; . $PressEnter
-                 fi
+                    msg="All $numJpg files deleted."; . $DisplayMsg; . $PressEnter
+                fi
             else
-                 msg="No choice made, choice needs to be Y or N."; . $DisplayMsg; . $PressEnter
+                msg="Keeping existing files."; . $DisplayMsg; . $PressEnter
             fi
         else
-            chceOk="y"
+             msg="Must be [Yy] or [Nn]."; . $DisplayMsg; . $PressEnter
         fi
+        tput cup $(($start_row + 7)) $left_col; tput el
     done
  
     tput cup $(($start_row + 6)) $left_col; tput el
@@ -61,10 +56,10 @@ GetInterval ()
          if [ $tlInt -gt 0 ]; then
             intOk="y"
          else
-            msg="Time interval must be greater than zero (0)."; . $DisplayMsg; . $PressEnter
+            msg="Must be greater than zero (0)."; . $DisplayMsg; . $PressEnter
          fi
       else
-         msg="Time interval must be an integer greater then zero (0)."; . $DisplayMsg; . $PressEnter
+         msg="Must be an integer greater then zero (0)."; . $DisplayMsg; . $PressEnter
       fi
    done
 }
@@ -84,10 +79,10 @@ GetLength ()
          if [ $tlTime -gt 0 ]; then
             lenOk="y"
          else
-            msg="Length of time must be greater than zero (0)."; . $DisplayMsg; . $PressEnter
+            msg="Must be greater than zero (0)."; . $DisplayMsg; . $PressEnter
          fi
       else
-         msg="Length of time must be an integer greater then zero (0)."; . $DisplayMsg; . $PressEnter
+         msg="Must be an integer greater then zero (0)."; . $DisplayMsg; . $PressEnter
       fi
    done
 }
@@ -98,27 +93,29 @@ GetLength ()
  
 StartTL ()
 {
-    local ansr="n"
+    local chceOk="n"
+    local ansr=""
     local thouSec=$((tlInt * 1000))
     local thouHrs=$((tlTime * 60000))
     local tlPid=0
 
-    tput cup $(($start_row + 9)) $left_col; read -p "Start timelapse y/n : " ansr 
-
-    if [ ! -z $ansr ]; then
-        if [ "$ansr" = "y" ]; then
-            nohup raspistill -t "$thouHrs" -tl "$thouSec" -o $tlFile -rot 180 2> /dev/null &
-            tlPid=$!
-            WriteToLog $tlPid
-            msg="Timelapse started, PID is $tlPid."; . $DisplayMsg; . $PressEnter
-        elif [ $ansr = "n" ]; then
-            msg="No selected, timelapse not started, returning to main menu."; . $DisplayMsg; . $PressEnter 
+    while [ $chceOk = "n" ]; do
+        tput cup $(($start_row + 9)) $left_col; read -p "Start timelapse [yn] : " ansr 
+        if [[ $ansr =~ [YyNn] ]]; then
+            chceOk="y"
+            if [[ $ansr =~ [Yy] ]]; then
+                nohup raspistill -t "$thouHrs" -tl "$thouSec" -o $tlFile -rot 180 2> /dev/null &
+                tlPid=$!
+                WriteToLog $tlPid
+                msg="Timelapse started, PID is $tlPid."; . $DisplayMsg; . $PressEnter
+            else
+                msg="Ok, returning to main menu."; . $DisplayMsg; . $PressEnter 
+            fi
         else
-            msg="Answer wasn't either Y or N, assuming no start, returning to main menu."; . $DisplayMsg; . $PressEnter
+            msg="Must be [Yy] or [Nn]."; . $DisplayMsg; . $PressEnter
         fi
-    else
-        msg="No choice made, assuming no start, returning to main menu."; . $DisplayMsg; . $PressEnter
-    fi
+        tput cup $(($start_row + 9)) $left_col; tput el
+    done
 }
  
 # -------------------------------------------------------------
@@ -143,6 +140,7 @@ WriteToLog ()
 tlImg="PiTl-$(date +'%Y%m%d-%H%M')-%04d.jpg"
 tlFile="${piTL}/${tlImg}"
 tlLog=${piTL}/"PiTl-$(date +'%Y%m%d-%H%M').log"
+numJpg=$(ls -l $piTL/*.jpg 2> /dev/null | wc -l)
 tlInt=0
 tlTime=0
 
@@ -154,7 +152,9 @@ hdrLne2="       Timelapse        "
 if [ $? -eq 0 ]; then
     tput cup $(($start_row + 3)) $left_col; echo "Directory    : $piTL"
     tput cup $(($start_row + 4)) $left_col; echo "File Name(s) : $tlImg eg. (PiTl-160708-0934-0001.jpg)"
-    CheckJPG
+    if [ $numJpg -gt 0 ]; then
+        CheckJPG $numJpg
+    fi
     if [ $? -eq 0 ]; then
         GetInterval
         GetLength

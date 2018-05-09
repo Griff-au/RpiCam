@@ -59,19 +59,26 @@ EncodeTL ()
     local avConvCrop="-vf crop=2592:1458,scale=1280:720"
 
     tput cup $(($start_row + 6)) $left_col; echo "$numJpg jpg files found."
-    tput cup $(($start_row + 7)) $left_col; read -p "Start encoding y/n : " ansr 
 
     while [ $chceOk = "n" ]; do
-       if [ $ansr = "y" ]; then
-          if [ $encodeType -eq 1 ]; then
-             nohup avconv -r 10 -i $jpgFile -r 10 -vcodec libx264 -crf 20 -g 15 $tlOut &> $tlLog &
+       tput cup $(($start_row + 7)) $left_col; read -p "Start encoding y/n : " ansr 
+       if [[ $ansr =~ [YyNn] ]]; then       
+          chceOk="y"
+          if [[ $ansr =~ [Yy] ]]; then
+             if [ $encodeType -eq 1 ]; then
+                nohup avconv -r 10 -i $jpgFile -r 10 -vcodec libx264 -crf 20 -g 15 $tlOut &> $tlLog &
+             else
+                nohup avconv -r 10 -i $jpgFile -r 10 -vcodec libx264 -crf 20 -g 15 $avConvCrop $tlOut &> $tlLog & 
+             fi
+             encPid=$!
+             msg="Encode started, PID is $encPid."; . $DisplayMsg; . $PressEnter
           else
-             nohup avconv -r 10 -i $jpgFile -r 10 -vcodec libx264 -crf 20 -g 15 $avConvCrop $tlOut &> $tlLog & 
+             msg="Ok, returning to main menu."; . $DisplayMsg; . $PressEnter
           fi
-          encPid=$!
-          msg="Encode started, PID is $encPid."; . $DisplayMsg; . $PressEnter
-       elif [ $ansr = "n"
+       else
+          msg="Must be [Yy] or [Nn]."; . $DisplayMsg; . $PressEnter
        fi
+       tput cup $(($start_row + 7)) $left_col; tput el
     done
 }
 
@@ -107,5 +114,5 @@ if [ -d $piTL ]; then
       msg="No jpg files found, returning to main menu."; . $DisplayMsg; . $PressEnter
    fi
 else
-   msg="Timelapse directory not found, returning to min menu."; . $DisplayMsg; . $PressEnter
+   msg="Timelapse directory not found, returning to main menu."; . $DisplayMsg; . $PressEnter
 fi
