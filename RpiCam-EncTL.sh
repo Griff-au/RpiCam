@@ -7,37 +7,42 @@
 EncodeType ()
 {
     local ansr=""
-    local locretVal=0
+    local locRetVal=0
     local choiceOk=false
 
+    tput cup $(($start_row + 5)) $left_col; echo "1. Full Resolution (2592 * 1944)"
+    tput cup $(($start_row + 6)) $left_col; echo "2. Cropped resolution (1280 * 720)"
+    tput cup $(($start_row + 7)) $left_col; echo "3. Exit - Return to Main Menu" 
+
     while [ $choiceOk = false ]; do 
-       tput cup $(($start_row + 6)) $left_col; echo "1. Full Resolution (2592 * 1944)"
-       tput cup $(($start_row + 7)) $left_col; echo "2. Cropped resolution (1280 * 720)"
-       tput cup $(($start_row + 8)) $left_col; echo "x. Exit - Return to Main Menu" 
-       tput cup $(($start_row + 10)) $left_col; read -p "Enter your choice 1,2,x : " ansr
-       if [[ $ansr =~ [1|2|x|X] ]]; then
-          choiceOk=true
-          encodeType=$ansr 
-          if [ $ansr = "1" ]; then
-             tlMp4="pitl_${tlDate}_nocrop.mp4"
-          elif [ $ansr = "2" ]; then
-             tlMp4="pitl_${tlDate}_crop.mp4"
-          fi 
-          if [[ $ansr =~ [xX] ]]; then
-             locretVal=1
+       tput cup $(($start_row + 10)) $left_col; read -p "Enter your choice [1-3] : " ansr
+       if [[ "$ansr" =~ ^-?[0-9]+$  ]]; then
+          if [ $ansr -ge 1 ] && [ $ansr -le 3 ]; then
+             choiceOk=true
+             encodeType=$ansr 
+             if [ $ansr = "1" ]; then
+                tlMp4="pitl_${tlDate}_${tlTime}_nocrop.mp4"
+             elif [ $ansr = "2" ]; then
+                tlMp4="pitl_${tlDate}_${tlTime}_crop.mp4"
+             else
+                locRetVal=1
+             fi 
+          else
+             msg="Choice must be 1,2 or 3."; . $DisplayMsg; . $PressEnter
           fi
        else
-          tput cup $(($start_row + 11)) $left_col; echo "Choice must be 1,2,x"
+          msg="Choice must be 1,2 or 3."; . $DisplayMsg; . $PressEnter
        fi
+       tput cup $(($start_row + 10)) $left_col; tput el 
     done
 
     tput cup $(($start_row + 4)) $left_col; echo "TimeLapse mp4 : $tlMp4"
+    tput cup $(($start_row + 5))  $left_col; tput el 
     tput cup $(($start_row + 6))  $left_col; tput el 
     tput cup $(($start_row + 7))  $left_col; tput el 
-    tput cup $(($start_row + 8))  $left_col; tput el 
     tput cup $(($start_row + 10)) $left_col; tput el 
 
-    return $locretVal
+    return $locRetVal
 }
 
 #--------------------------------------------------------
@@ -48,22 +53,26 @@ EncodeTL ()
 {
     local ansr="n"
     local encPid=0
+    local chceOk="n"
     local tlOut="${piTL}/${tlMp4}"
-    local tlLog="${piTL}/tlenc_${tlDate}_${tlTime}.log"
+    local tlLog="${piTL}/pitl_${tlDate}_${tlTime}.log"
     local avConvCrop="-vf crop=2592:1458,scale=1280:720"
 
     tput cup $(($start_row + 6)) $left_col; echo "$numJpg jpg files found."
     tput cup $(($start_row + 7)) $left_col; read -p "Start encoding y/n : " ansr 
 
-    if [ $ansr = "y" ]; then
-       if [ $encodeType -eq 1 ]; then
-          nohup avconv -r 10 -i $jpgFile -r 10 -vcodec libx264 -crf 20 -g 15 $tlOut &> $tlLog &
-       else
-          nohup avconv -r 10 -i $jpgFile -r 10 -vcodec libx264 -crf 20 -g 15 $avConvCrop $tlOut &> $tlLog & 
+    while [ $chceOk = "n" ]; do
+       if [ $ansr = "y" ]; then
+          if [ $encodeType -eq 1 ]; then
+             nohup avconv -r 10 -i $jpgFile -r 10 -vcodec libx264 -crf 20 -g 15 $tlOut &> $tlLog &
+          else
+             nohup avconv -r 10 -i $jpgFile -r 10 -vcodec libx264 -crf 20 -g 15 $avConvCrop $tlOut &> $tlLog & 
+          fi
+          encPid=$!
+          msg="Encode started, PID is $encPid."; . $DisplayMsg; . $PressEnter
+       elif [ $ansr = "n"
        fi
-       encPid=$!
-       msg="Encode started, PID is $encPid."; . $DisplayMsg; . $PressEnter
-    fi
+    done
 }
 
 #--------------------------------------------------------
@@ -92,11 +101,11 @@ if [ -d $piTL ]; then
             EncodeTL
          fi
       else
-         tput cup $(($start_row + 7)) $left_col; echo "Returning to Main Menu - First JPG file, 0001, not found"
+         msg="First jpg file, 0001, not found, returning to main menu."; . $DisplayMsg; . $PressEnter
       fi
    else 
-      tput cup $(($start_row + 7)) $left_col; echo "Returning to Main Menu - No JPG files found"
+      msg="No jpg files found, returning to main menu."; . $DisplayMsg; . $PressEnter
    fi
 else
-   tput cup $(($start_row + 7)) $left_col; echo "Returning to Main Menu - $piTL not found"
+   msg="Timelapse directory not found, returning to min menu."; . $DisplayMsg; . $PressEnter
 fi
