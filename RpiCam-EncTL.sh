@@ -16,20 +16,16 @@ EncodeType ()
 
     while [ $choiceOk = false ]; do 
        tput cup $(($start_row + 10)) $left_col; read -p "Enter your choice [1-3] : " ansr
-       if [[ "$ansr" =~ ^-?[0-9]+$  ]]; then
-          if [ $ansr -ge 1 ] && [ $ansr -le 3 ]; then
-             choiceOk=true
-             encodeType=$ansr 
-             if [ $ansr = "1" ]; then
-                tlMp4="pitl_${tlDate}_${tlTime}_nocrop.mp4"
-             elif [ $ansr = "2" ]; then
-                tlMp4="pitl_${tlDate}_${tlTime}_crop.mp4"
-             else
-                locRetVal=1
-             fi 
+       if [[ "$ansr" =~ ^-?[1-3]+$  ]]; then
+          choiceOk=true
+          encodeType=$ansr 
+          if [ $ansr = "1" ]; then
+             tlMp4="pitl_${tlDate}_${tlTime}_nocrop.mp4"
+          elif [ $ansr = "2" ]; then
+             tlMp4="pitl_${tlDate}_${tlTime}_crop.mp4"
           else
-             msg="Choice must be 1,2 or 3."; . $DisplayMsg; . $PressEnter
-          fi
+             locRetVal=1
+          fi 
        else
           msg="Choice must be 1,2 or 3."; . $DisplayMsg; . $PressEnter
        fi

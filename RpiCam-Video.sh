@@ -11,14 +11,10 @@ SetLenTime ()
     while [ $timeOk = "n" ]; do
         tput cup $(($start_row + 6)) $left_col; tput el
         tput cup $(($start_row + 6)) $left_col; read -p "Length of time              : " vdTime
-        if [[ "$vdTime" =~ ^-?[0-9]+$ ]]; then
-            if [ $vdTime -gt 0 ]; then
-                timeOk="y"
-            else
-                msg="Time duration must be greater than zero (0)."; . $DisplayMsg; . $PressEnter
-            fi  
+        if [[ "$vdTime" =~ ^-?[0-9]+$ ]] && [ $vdTime -gt 0 ]; then
+            timeOk="y"
         else
-            msg="Time duration must be an integer greater then zero (0)."; . $DisplayMsg; . $PressEnter
+            msg="Must be an integer greater then zero (0)."; . $DisplayMsg; . $PressEnter
         fi  
     done
 }
@@ -34,15 +30,11 @@ SetUnitTime ()
     while [ $unitOk = "n" ]; do
         tput cup $(($start_row + 7)) $left_col; tput el
         tput cup $(($start_row + 7)) $left_col; read -p "Minutes or Seconds (m or s) : " vdUnit 
-        if [ ! -z $vdUnit ]; then
-            if [[ $vdUnit == [msMS] ]]; then
-                unitOk="y"
-            else
-                msg="Unit must be either [Mm] or [Ss]."; . $DisplayMsg; . $PressEnter
-            fi
-         else
-            msg="Unit can't be blank and must be either [Mm] or [Ss]."; . $DisplayMsg; . $PressEnter
-        fi 
+        if [[ $vdUnit == [msMS] ]]; then
+            unitOk="y"
+        else
+            msg="Must be either [Mm] or [Ss]."; . $DisplayMsg; . $PressEnter
+        fi
     done
 }
 

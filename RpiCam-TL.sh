@@ -51,13 +51,8 @@ GetInterval ()
    while [ $intOk = "n" ]; do
       tput cup $(($start_row + 6)) $left_col; tput el
       tput cup $(($start_row + 6)) $left_col; read -p "Time interval in seconds         : " tlInt 
-
-      if [[ "$tlInt" =~ ^-?[0-9]+$ ]]; then
-         if [ $tlInt -gt 0 ]; then
-            intOk="y"
-         else
-            msg="Must be greater than zero (0)."; . $DisplayMsg; . $PressEnter
-         fi
+      if [[ "$tlInt" =~ ^-?[0-9]+$ ]] && [ $tlInt -gt 0 ]; then
+         intOk="y"
       else
          msg="Must be an integer greater then zero (0)."; . $DisplayMsg; . $PressEnter
       fi
@@ -73,14 +68,10 @@ GetLength ()
    local lenOk="n"
 
    while [ $lenOk = "n" ]; do
+      tput cup $(($start_row + 7)) $left_col; tput el
       tput cup $(($start_row + 7)) $left_col; read -p "Length of time to run in minutes : " tlTime
-
-      if [[ "$tlTime" =~ ^-?[0-9]+$ ]]; then
-         if [ $tlTime -gt 0 ]; then
-            lenOk="y"
-         else
-            msg="Must be greater than zero (0)."; . $DisplayMsg; . $PressEnter
-         fi
+      if [[ "$tlTime" =~ ^-?[0-9]+$ ]] && [ $tlTime -gt 0 ]; then
+         lenOk="y"
       else
          msg="Must be an integer greater then zero (0)."; . $DisplayMsg; . $PressEnter
       fi

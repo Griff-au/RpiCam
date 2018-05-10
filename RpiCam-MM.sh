@@ -52,7 +52,7 @@ do
     read -p "Enter your menu choice [1-9]: " mnuChce
     tput sgr0
 
-    if [[ "$mnuChce" =~ ^-?[0-9]+$ ]]; then
+    if [[ "$mnuChce" =~ ^-?[1-9]+$ ]]; then
         if [ $mnuChce -ge 1 ] && [ $mnuChce -le 8 ]; then
             mnuChce=$(($mnuChce + ($mnuChce - 1)))
             . ${piCamDir}/${mnuArray[$mnuChce]}
@@ -60,7 +60,7 @@ do
             clear
             exit 0
         else
-            msg="Oops!!!. Value must be between 1 and 9."; . $DisplayMsg; . $PressEnter 
+            msg="Value must be between 1 and 9."; . $DisplayMsg; . $PressEnter 
         fi
     else
         msg="Value must be an integer between 1 and 9."; . $DisplayMsg; . $PressEnter 
