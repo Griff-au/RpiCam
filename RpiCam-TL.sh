@@ -123,11 +123,11 @@ WriteToLog ()
     echo "Interval is : $tlInt seconds between shots" >> $tlLog
     echo "jpg files   : $tlImg" >> $tlLog
 }
- 
+
 # -------------------------------------------------------------
 # Main routine - Start here 
 # -------------------------------------------------------------
- 
+
 tlImg="PiTl-$(date +'%Y%m%d-%H%M')-%04d.jpg"
 tlFile="${piTL}/${tlImg}"
 tlLog=${piTL}/"PiTl-$(date +'%Y%m%d-%H%M').log"

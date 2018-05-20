@@ -42,6 +42,40 @@ EncodeType ()
 }
 
 #--------------------------------------------------------
+#   Check that MP4 file doesn't already exist. 
+#--------------------------------------------------------
+
+MP4Exists ()
+{
+    local tlOut="${piTL}/${tlMp4}"
+    local ansr="n"
+    local chceOk="n"
+    local locRetVal=0
+
+    tput cup $(($start_row + 6)) $left_col; echo "$tlOut exists."
+
+    while [ $chceOk = "n" ]; do
+       tput cup $(($start_row + 7)) $left_col; read -p "Delete it [yn] : " ansr 
+       if [[ $ansr =~ [YyNn] ]]; then       
+          chceOk="y"
+          if [[ $ansr =~ [Yy] ]]; then
+             rm ${tlOut}
+          else
+             locRetVal=1
+             msg="Ok, returning to main menu."; . $DisplayMsg; . $PressEnter
+          fi
+       else
+          msg="Must by [Yy] or [Nn]."; . $DisplayMsg; . $PressEnter
+       fi
+       tput cup $(($start_row + 7)) $left_col; tput el 
+    done
+
+    tput cup $(($start_row + 6)) $left_col; tput el
+    tput cup $(($start_row + 7)) $left_col; tput el
+
+    return $locRetVal
+}
+#--------------------------------------------------------
 # Encode jpg images using avconv.
 #--------------------------------------------------------
 
@@ -51,7 +85,7 @@ EncodeTL ()
     local encPid=0
     local chceOk="n"
     local tlOut="${piTL}/${tlMp4}"
-    local tlLog="${piTL}/pitl_${tlDate}_${tlTime}.log"
+    local tlLog="${piTL}/pitl_${tlDate}_${tlTime}.avconvlog"
     local avConvCrop="-vf crop=2592:1458,scale=1280:720"
 
     tput cup $(($start_row + 6)) $left_col; echo "$numJpg jpg files found."
@@ -85,15 +119,18 @@ EncodeTL ()
 numJpg=$(ls -l $piTL/*.jpg 2> /dev/null | wc -l)
 tlFile=$(ls $piTL/*0001.jpg 2> /dev/null)
 encodeType=0
+tlMp4=""
+tlOut=""
 tlDate=""
 tlTime=""
 
 hdrLne2="    Encode Timelapse    "
+
 . $PiCamHdr
+. $CheckDir "$piTL"
 
-tput cup $(($start_row + 3)) $left_col; echo "Directory     : $piTL"
-
-if [ -d $piTL ]; then
+if [ $? -eq 0 ]; then
+   tput cup $(($start_row + 3)) $left_col; echo "Directory     : $piTL"
    if [ $numJpg -gt 0 ]; then
       if [ ! -z $tlFile ]; then 
          IFS='-' read part_01 tlDate tlTime part_04 <<< "$tlFile"
@@ -101,7 +138,15 @@ if [ -d $piTL ]; then
          unset IFS
          EncodeType
          if [ $? -eq 0 ]; then
-            EncodeTL
+            tlOut="${piTL}/${tlMp4}"
+            if [ -e "$tlOut" ]; then
+                MP4Exists
+                if [ $? -eq 0 ]; then
+                    EncodeTL
+                fi
+            else
+                EncodeTL
+            fi
          fi
       else
          msg="First jpg file, 0001, not found, returning to main menu."; . $DisplayMsg; . $PressEnter

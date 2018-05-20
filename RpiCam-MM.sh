@@ -26,7 +26,7 @@ mnuArray=(
             "Start Timelapse"               "RpiCam-TL.sh" 
             "Take Video"                    "RpiCam-Video.sh"
             "Start VLC Streaming video"     "RpiCam-VLC.sh"
-            "Start MJPG Streaming Video"    "RpiCam-MJPG.sh"
+            "Check Timelapse sequence"      "RpiCam-TLSeq.sh"
             "Encode Timelapse"              "RpiCam-EncTL.sh"
             "Mount USB"                     "RpiCam-MntUSB.sh"
             "Start VNC Server"              "RpiCam-VNC.sh"
