@@ -96,14 +96,14 @@ CheckSeq ()
         $(rm $missJpg)
     fi
 
-    while read jpgFile
+    while read fileName
     do
-        IFS=- read tlPref tlDate tlTime tlSeq <<< ${jpgFile}
+        IFS=- read tlPref tlDate tlTime tlSeq <<< ${fileName}
         IFS=. read jpgSeq jpgExt <<< ${tlSeq}
-        unset IFS
         if [ $fileCnt -ne $jpgSeq ]; then
             while [ $fileCnt -lt $jpgSeq ]; do
-                echo ${fileCnt} >> ${missJpg}
+                outFile=$(printf "%s-%s-%s-%04d.%s\n" ${tlPref} ${tlDate} ${tlTime} $((10#${fileCnt})) ${jpgExt})
+                echo ${outFile} >> ${missJpg}
                 ((fileCnt++))
                 ((missFileCnt++))
             done
@@ -111,9 +111,10 @@ CheckSeq ()
         ((fileCnt++))
     done < ${jpgFile} 
 
+    unset IFS
+
     return $missFileCnt
 }
-
 
 # -------------------------------------------------------------------
 #   Resequence jpg files.
@@ -121,13 +122,22 @@ CheckSeq ()
 
 ReSeqJpg ()
 {
-    msg="Resequence files, returning to main menu."; . $DisplayMsg; . $PressEnter
+    while read fileName
+    do
+        IFS=- read tlPref tlDate tlTime tlSeq <<< ${fileName}
+        IFS=. read jpgSeq jpgExt <<< ${tlSeq}
+        prevSeq=$(printf "%04d" $((10#${jpgSeq} - 1)))
+        prevFile="${tlPref}-${tlDate}-${tlTime}-${prevSeq}.jpg"
+        $(cp ${prevFile} ${fileName})
+    done < ${missFile} 
+
+    unset IFS
 }
 
 # -------------------------------------------------------------------
 # 	Main routine - Start here.
 # -------------------------------------------------------------------
- 
+
 jpgFile="tlJpg.out"
 tlJpg="${piTL}/${jpgFile}"
 missFile="missingjpg.out"
