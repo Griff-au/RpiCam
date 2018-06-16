@@ -29,7 +29,6 @@ mnuArray=(
             "Check Timelapse sequence"      "RpiCam-TLSeq.sh"
             "Encode Timelapse"              "RpiCam-EncTL.sh"
             "Mount USB"                     "RpiCam-MntUSB.sh"
-            "Start VNC Server"              "RpiCam-VNC.sh"
             "Exit/Stop"
         );
 
@@ -47,23 +46,25 @@ do
         mnuOption=$(($mnuOption + 1))
     done
 
+    mnuOption=$(($mnuOption - 1))
+
     tput bold
     tput cup $(($start_row + 13)) $left_col 
-    read -p "Enter your menu choice [1-9]: " mnuChce
+    read -p "Enter your menu choice [1-${mnuOption}]: " mnuChce
     tput sgr0
 
-    if [[ "$mnuChce" =~ ^-?[1-9]+$ ]]; then
-        if [ $mnuChce -ge 1 ] && [ $mnuChce -le 8 ]; then
+    if [[ "$mnuChce" =~ ^-?[1-${mnuOption}]+$ ]]; then
+        if [ $mnuChce -ge 1 ] && [ $mnuChce -le $(($mnuOption - 1)) ]; then
             mnuChce=$(($mnuChce + ($mnuChce - 1)))
             . ${piCamDir}/${mnuArray[$mnuChce]}
-        elif [ $mnuChce -eq 9 ]; then
+        elif [ $mnuChce -eq ${mnuOption} ]; then
             clear
             exit 0
         else
-            msg="Value must be between 1 and 9."; . $DisplayMsg; . $PressEnter 
+            msg="Value must be between 1 and ${mnuOption}."; . $DisplayMsg; . $PressEnter 
         fi
     else
-        msg="Value must be an integer between 1 and 9."; . $DisplayMsg; . $PressEnter 
+        msg="Value must be an integer between 1 and ${mnuOption}"; . $DisplayMsg; . $PressEnter 
     fi
 
     rowOffSet=3
