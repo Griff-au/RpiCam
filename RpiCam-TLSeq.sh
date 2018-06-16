@@ -90,7 +90,7 @@ CheckSeq ()
     local missFileCnt=0
 
     cd ${piTL}
-    ls *.jpg > ${jpgFile}
+    $(ls *.jpg > ${jpgFile})
 
     if [ -e $missJpg ]; then
         $(rm $missJpg)
@@ -98,11 +98,11 @@ CheckSeq ()
 
     while read fileName
     do
-        IFS=- read tlPref tlDate tlTime tlSeq <<< ${fileName}
+        IFS=_ read tlPref tlDate tlTime tlSeq <<< ${fileName}
         IFS=. read jpgSeq jpgExt <<< ${tlSeq}
         if [ $fileCnt -ne $jpgSeq ]; then
             while [ $fileCnt -lt $jpgSeq ]; do
-                outFile=$(printf "%s-%s-%s-%04d.%s\n" ${tlPref} ${tlDate} ${tlTime} $((10#${fileCnt})) ${jpgExt})
+                outFile=$(printf "%s_%s_%s_%04d.%s\n" ${tlPref} ${tlDate} ${tlTime} $((10#${fileCnt})) ${jpgExt})
                 echo ${outFile} >> ${missJpg}
                 ((fileCnt++))
                 ((missFileCnt++))
@@ -111,6 +111,7 @@ CheckSeq ()
         ((fileCnt++))
     done < ${jpgFile} 
 
+    $(rm ${jpgFile})
     unset IFS
 
     return $missFileCnt
@@ -124,10 +125,10 @@ ReSeqJpg ()
 {
     while read fileName
     do
-        IFS=- read tlPref tlDate tlTime tlSeq <<< ${fileName}
+        IFS=_ read tlPref tlDate tlTime tlSeq <<< ${fileName}
         IFS=. read jpgSeq jpgExt <<< ${tlSeq}
         prevSeq=$(printf "%04d" $((10#${jpgSeq} - 1)))
-        prevFile="${tlPref}-${tlDate}-${tlTime}-${prevSeq}.jpg"
+        prevFile="${tlPref}_${tlDate}_${tlTime}_${prevSeq}.jpg"
         $(cp ${prevFile} ${fileName})
     done < ${missFile} 
 

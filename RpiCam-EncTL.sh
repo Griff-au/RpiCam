@@ -20,7 +20,7 @@ EncodeType ()
           choiceOk=true
           encodeType=$ansr 
           if [ $ansr = "1" ]; then
-             tlMp4="pitl_${tlDate}_${tlTime}_nocrop.mp4"
+             tlMp4="pitl_${tlDate}_${tlTime}.mp4"
           elif [ $ansr = "2" ]; then
              tlMp4="pitl_${tlDate}_${tlTime}_crop.mp4"
           else
@@ -47,7 +47,6 @@ EncodeType ()
 
 MP4Exists ()
 {
-    local tlOut="${piTL}/${tlMp4}"
     local ansr="n"
     local chceOk="n"
     local locRetVal=0
@@ -75,6 +74,7 @@ MP4Exists ()
 
     return $locRetVal
 }
+
 #--------------------------------------------------------
 # Encode jpg images using avconv.
 #--------------------------------------------------------
@@ -84,9 +84,14 @@ EncodeTL ()
     local ansr="n"
     local encPid=0
     local chceOk="n"
-    local tlOut="${piTL}/${tlMp4}"
+    local tlBash="${piTL}/pitl_${tlDate}_${tlTime}.sh"
     local tlLog="${piTL}/pitl_${tlDate}_${tlTime}.avconvlog"
+    local avConv01="nohup avconv -r 10 -i $jpgFile -r 10 -vcodec libx264 -crf 20 -g 15"
     local avConvCrop="-vf crop=2592:1458,scale=1280:720"
+
+    $(echo "#!/bin/bash" > $tlBash)
+    $(echo "rm $tlOut" >> $tlBash)
+    $(chmod u+x $tlBash)
 
     tput cup $(($start_row + 6)) $left_col; echo "$numJpg jpg files found."
 
@@ -96,9 +101,11 @@ EncodeTL ()
           chceOk="y"
           if [[ $ansr =~ [Yy] ]]; then
              if [ $encodeType -eq 1 ]; then
-                nohup avconv -r 10 -i $jpgFile -r 10 -vcodec libx264 -crf 20 -g 15 $tlOut &> $tlLog &
+                $(echo "$avConv01 $tlOut &> $tlLog &" >> $tlBash)
+                $avConv01 $tlOut &> $tlLog &
              else
-                nohup avconv -r 10 -i $jpgFile -r 10 -vcodec libx264 -crf 20 -g 15 $avConvCrop $tlOut &> $tlLog & 
+                $(echo "$avConv01 $avConvCrop $tlOut &> $tlLog &" >> $tlBash)
+                $avConv01 $avConvCrop $tlOut &> $tlLog &
              fi
              encPid=$!
              msg="Encode started, PID is $encPid."; . $DisplayMsg; . $PressEnter
@@ -118,6 +125,7 @@ EncodeTL ()
 
 numJpg=$(ls -l $piTL/*.jpg 2> /dev/null | wc -l)
 tlFile=$(ls $piTL/*0001.jpg 2> /dev/null)
+
 encodeType=0
 tlMp4=""
 tlOut=""
@@ -133,8 +141,8 @@ if [ $? -eq 0 ]; then
    tput cup $(($start_row + 3)) $left_col; echo "Directory     : $piTL"
    if [ $numJpg -gt 0 ]; then
       if [ ! -z $tlFile ]; then 
-         IFS='-' read part_01 tlDate tlTime part_04 <<< "$tlFile"
-         jpgFile="${piTL}/PiTl-${tlDate}-${tlTime}-%04d.jpg"
+         IFS='_' read part_01 tlDate tlTime part_04 <<< "$tlFile"
+         jpgFile="${piTL}/pitl_${tlDate}_${tlTime}_%04d.jpg"
          unset IFS
          EncodeType
          if [ $? -eq 0 ]; then

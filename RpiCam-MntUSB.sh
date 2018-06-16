@@ -5,15 +5,12 @@
 # -----------------------------------
 
 device="/dev/sda1"
-fileSystem="/media/usbstick"
+fileSystem="/media/usbdrive"
 retVal=0
 
-tput clear
-tput cup $start_row $left_col 
-tput rev 
-echo "   Raspicam Utilities  "
-tput cup $(($start_row + 1)) $left_col 
-echo "       Mount USB       " 
+hdrLne2="       Mount USB       " 
+. $PiCamHdr
+
 tput sgr0
 tput cup $(($start_row + 3)) $left_col; echo "Device      : $device"
 tput cup $(($start_row + 4)) $left_col; echo "File System : $fileSystem"
@@ -23,12 +20,12 @@ if [ "$ansr" = "y" ]; then
    sudo mount -t vfat -o uid=pi,gid=pi $device $fileSystem  2> /dev/null
    retVal=$?
    if [ $retVal -eq 0 ]; then
-      tput cup $(($start_row + 7)) $left_col; echo "USB Drive mounted ok."
+      msg="USB Drive mounted Ok."; . $DisplayMsg; . $PressEnter
    else
       if [ $retVal -eq 32 ]; then 
-         tput cup $(($start_row + 7)) $left_col; echo "$fileSystem already mounted"
+         msg="$fileSystem already mounted."; . $DisplayMsg; . $PressEnter
       else
-         tput cup $(($start_row + 7)) $left_col; echo "Returning to Main Menu - Unable to mount $fileSystem"
+         msg="Unable to mount $fileSystem."; . $DisplayMsg; . $PressEnter
       fi
    fi
 fi

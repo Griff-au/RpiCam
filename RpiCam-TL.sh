@@ -19,6 +19,8 @@ CheckJPG ()
             chceOk="y"
             if [[ $ansr =~ [Yy] ]]; then
                 rm $piTL/*.jpg
+                rm $piTL/*log
+                rm $piTL/*.sh
                 if [ $? -ne 0 ]; then
                     msg="Unable to delete existing files."; . $DisplayMsg; . $PressEnter
                     locretVal=1
@@ -128,9 +130,9 @@ WriteToLog ()
 # Main routine - Start here 
 # -------------------------------------------------------------
 
-tlImg="PiTl-$(date +'%Y%m%d-%H%M')-%04d.jpg"
+tlImg="pitl_$(date +'%Y%m%d_%H%M')_%04d.jpg"
 tlFile="${piTL}/${tlImg}"
-tlLog=${piTL}/"PiTl-$(date +'%Y%m%d-%H%M').log"
+tlLog=${piTL}/"pitl_$(date +'%Y%m%d_%H%M').log"
 numJpg=$(ls -l $piTL/*.jpg 2> /dev/null | wc -l)
 tlInt=0
 tlTime=0
